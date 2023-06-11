@@ -1,0 +1,4 @@
+rootProject.name = 'users-kotlin-hexagonal'
+
+include 'domain'
+include 'infrastructure'
