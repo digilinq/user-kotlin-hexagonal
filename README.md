@@ -1,1 +1,1 @@
-# user-kotlin-hexagonal
+# users-kotlin-hexagonal

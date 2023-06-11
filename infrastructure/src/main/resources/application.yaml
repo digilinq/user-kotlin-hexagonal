@@ -1,0 +1,5 @@
+server:
+  port: 8080
+
+api:
+  base-path: platform/users/v1

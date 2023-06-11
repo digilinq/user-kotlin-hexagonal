@@ -1,0 +1,109 @@
+openapi: 3.0.3
+info:
+  title: Users Service API - OpenAPI 3.0
+  description: Users API
+  version: 1.0.0
+servers:
+  - url: https://dev.digilinq.org/platform/users/v1
+    description: Development
+  - url: https://tst.digilinq.org/platform/users/v1
+    description: Test
+  - url: https://acc.digilinq.org/platform/users/v1
+    description: Acceptance
+  - url: https://digilinq.org/platform/users/v1
+    description: Production
+paths:
+  /users:
+    get:
+      tags:
+        - Users Microservice
+      summary: This endpoint will provide a list of users based on provided quesy parameters, it support pagination and requires admin privileges
+      description: This endpoint will populate a list of users based on given parameters, username and email
+      operationId: findAllUsers
+      parameters:
+        - in: query
+          name: username
+          schema:
+            type: string
+          example: username
+        - in: query
+          name: email
+          schema:
+            type: string
+            format: email
+          example: someone@example.org
+        - $ref: '#/components/parameters/pageParam'
+        - $ref: '#/components/parameters/sizeParam'
+      responses:
+        200:
+          description: The list of users is populated succesfully based on given parameters
+          headers:
+            total-count:
+              schema:
+                type: integer
+                format: int64
+              description: Total number of the users found
+            total-pages:
+              schema:
+                type: integer
+                format: int64
+              description: Total number of the pages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - userId
+        - username
+      properties:
+        userId:
+          type: string
+          format: uuid
+          example: db742d74-07d0-11ee-be56-0242ac120002
+        username:
+          type: string
+          example: username
+        email:
+          type: string
+          format: email
+          example: someone@example.org
+        password:
+          type: string
+          example: zx#6YiGfD92n
+        enabled:
+          type: boolean
+          example: true
+        validUntil:
+          type: string
+          format: date-time
+  parameters:
+    pageParam:
+      name: page
+      in: query
+      description: The page to be returned
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        default: 1
+    sizeParam:
+      name: size
+      in: query
+      description: The number of items to be returned
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        default: 20
+        maximum: 100
+tags:
+  - name: Users Microservice
+    description: Users Microservice

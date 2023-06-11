@@ -1,0 +1,96 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+plugins {
+    id 'org.springframework.boot' version '2.7.12'
+    id 'io.spring.dependency-management' version '1.1.0'
+    id 'org.jetbrains.kotlin.plugin.spring' version '1.8.21'
+
+    id 'org.openapi.generator' version '6.6.0'
+}
+
+sourceCompatibility = '17'
+
+//sourceSets {
+//    main {
+//        kotlin.srcDirs += "$buildDir/generated/open-api/src/main/kotlin"
+//    }
+//}
+
+sourceSets {
+    main {
+        java.srcDirs = ['src/main/java', "build/generated-sources/open-api/src/main/java"]
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+openApiGenerate {
+    generatorName = 'spring'
+    library = 'spring-boot'
+    inputSpec = "$projectDir/src/main/resources/open-api/server/users-api-oas.yaml".toString()
+    outputDir = "$buildDir/generated-sources/open-api" as String
+    packageName = 'com.digilinq.platform.users.web.generated.v1'
+    apiPackage = 'com.digilinq.platform.users.web.generated.v1.api'
+    modelPackage = 'com.digilinq.platform.users.web.generated.v1.model'
+    invokerPackage = 'com.digilinq.platform.users.web.generated.v1.invoker'
+    enablePostProcessFile = true
+    skipOverwrite = false
+    configOptions = [
+            interfaceOnly       : 'true',
+            enumPropertyNaming  : "original",
+            serializationLibrary: 'jackson',
+            dateLibrary         : 'java8'
+    ]
+    typeMappings = [
+            'OffsetDateTime': 'LocalDateTime',
+            'java.time.OffsetDateTime': 'java.time.LocalDateTime'
+    ]
+    importMappings = [
+            'OffsetDateTime': 'LocalDateTime',
+            'java.time.OffsetDateTime': 'java.time.LocalDateTime'
+    ]
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+//    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+//    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
+    implementation 'org.jetbrains.kotlin:kotlin-reflect'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+//    testImplementation 'org.springframework.security:spring-security-test'
+
+    implementation project(':domain')
+
+    compileOnly 'jakarta.annotation:jakarta.annotation-api:2.1.1'
+    implementation 'org.springdoc:springdoc-openapi-data-rest:1.6.13'
+    implementation 'org.springdoc:springdoc-openapi-ui:1.6.13'
+    implementation 'org.springdoc:springdoc-openapi-kotlin:1.6.13'
+
+    // OpenAPI Generator
+    implementation 'javax.annotation:javax.annotation-api:1.3.2'
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
+
+    // MapStruct
+    implementation 'org.mapstruct:mapstruct:1.5.3.Final'
+    kapt 'org.mapstruct:mapstruct-processor:1.5.3.Final'
+}
+
+tasks.withType(KotlinCompile) {
+    kotlinOptions {
+        freeCompilerArgs = ['-Xjsr305=strict']
+        jvmTarget = '17'
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+compileKotlin.dependsOn tasks.openApiGenerate
+compileTestKotlin.dependsOn tasks.openApiGenerate
