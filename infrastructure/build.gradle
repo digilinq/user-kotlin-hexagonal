@@ -20,6 +20,14 @@ sourceSets {
     main {
         java.srcDirs = ['src/main/java', "build/generated-sources/open-api/src/main/java"]
     }
+    integrationTest {
+        kotlin {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integration-test/kotlin')
+        }
+        resources.srcDir file('src/integration-test/resources')
+    }
 }
 
 dependencyManagement {
@@ -46,26 +54,27 @@ openApiGenerate {
             dateLibrary         : 'java8'
     ]
     typeMappings = [
-            'OffsetDateTime': 'LocalDateTime',
+            'OffsetDateTime'          : 'LocalDateTime',
             'java.time.OffsetDateTime': 'java.time.LocalDateTime'
     ]
     importMappings = [
-            'OffsetDateTime': 'LocalDateTime',
+            'OffsetDateTime'          : 'LocalDateTime',
             'java.time.OffsetDateTime': 'java.time.LocalDateTime'
     ]
 }
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
-//    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-//    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
     implementation 'org.jetbrains.kotlin:kotlin-reflect'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-//    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.springframework.security:spring-security-test'
 
     implementation project(':domain')
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
 
     compileOnly 'jakarta.annotation:jakarta.annotation-api:2.1.1'
     implementation 'org.springdoc:springdoc-openapi-data-rest:1.6.13'
@@ -79,6 +88,14 @@ dependencies {
     // MapStruct
     implementation 'org.mapstruct:mapstruct:1.5.3.Final'
     kapt 'org.mapstruct:mapstruct-processor:1.5.3.Final'
+
+    // Rest Assured
+    testImplementation 'io.rest-assured:json-path'
+    testImplementation 'io.rest-assured:rest-assured'
+    testImplementation 'io.rest-assured:json-schema-validator'
+    testImplementation 'io.rest-assured:spring-mock-mvc'
+
+    runtimeOnly 'org.springframework.boot:spring-boot-properties-migrator'
 }
 
 tasks.withType(KotlinCompile) {
@@ -90,6 +107,15 @@ tasks.withType(KotlinCompile) {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+task integrationTest(type: Test) {
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+}
+
+tasks.named('check') {
+    dependsOn(tasks.integrationTest)
 }
 
 compileKotlin.dependsOn tasks.openApiGenerate
