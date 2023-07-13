@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id 'org.springframework.boot' version '2.7.12'
+    id 'org.springframework.boot' version "$springBootVersion"
     id 'io.spring.dependency-management' version '1.1.0'
     id 'org.jetbrains.kotlin.plugin.spring' version '1.8.21'
 
@@ -9,6 +9,9 @@ plugins {
 }
 
 sourceCompatibility = '17'
+
+def openApiSpecification = "$projectDir/src/main/resources/open-api/server/users-api-oas.yaml"
+def generatedSourceDirectory = "$buildDir/generated-sources/open-api"
 
 //sourceSets {
 //    main {
@@ -36,11 +39,16 @@ dependencyManagement {
     }
 }
 
+openApiValidate {
+    inputSpec = openApiSpecification
+    recommend = true
+}
+
 openApiGenerate {
     generatorName = 'spring'
     library = 'spring-boot'
-    inputSpec = "$projectDir/src/main/resources/open-api/server/users-api-oas.yaml".toString()
-    outputDir = "$buildDir/generated-sources/open-api" as String
+    inputSpec = openApiSpecification
+    outputDir = generatedSourceDirectory
     packageName = 'com.digilinq.platform.users.web.generated.v1'
     apiPackage = 'com.digilinq.platform.users.web.generated.v1.api'
     modelPackage = 'com.digilinq.platform.users.web.generated.v1.model'
@@ -48,10 +56,11 @@ openApiGenerate {
     enablePostProcessFile = true
     skipOverwrite = false
     configOptions = [
-            interfaceOnly       : 'true',
-            enumPropertyNaming  : "original",
-            serializationLibrary: 'jackson',
-            dateLibrary         : 'java8'
+//            useSpringBoot3      : "ture",
+interfaceOnly       : "true",
+enumPropertyNaming  : "original",
+serializationLibrary: "jackson",
+dateLibrary         : "java8",
     ]
     typeMappings = [
             'OffsetDateTime'          : 'LocalDateTime',
@@ -118,5 +127,7 @@ tasks.named('check') {
     dependsOn(tasks.integrationTest)
 }
 
-compileKotlin.dependsOn tasks.openApiGenerate
-compileTestKotlin.dependsOn tasks.openApiGenerate
+tasks.openApiGenerate.dependsOn tasks.openApiValidate
+
+tasks.compileKotlin.dependsOn tasks.openApiGenerate
+tasks.compileTestKotlin.dependsOn tasks.openApiGenerate
