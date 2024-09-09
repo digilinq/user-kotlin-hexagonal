@@ -43,12 +43,30 @@ class SwaggerUiTest @Autowired constructor(
         }
     }
 
-    @Disabled
     @Test
-    fun `with considering about the security configuration should get response 200 while heating swagger-ui endpoint`() {
+    fun `should get response 200 while heating swagger-ui endpoint`() {
         mockMvc.get(ENDPOINT_SWAGGER_UI).andExpect {
             status {
+                isFound()
+            }
+            header {
+                string("Location", "/swagger-ui/index.html")
+            }
+        }
+    }
+
+    @Test
+    fun `should return 200 while heating swagger-ui index endpoint`() {
+        mockMvc.get(ENDPOINT_SWAGGER_UI_INDEX).andExpect {
+            status {
                 isOk()
+            }
+            content {
+                contentType("text/html")
+                content {
+                    string(StringContains.containsString("<html"))
+                    string(StringContains.containsString("</html>"))
+                }
             }
         }
     }
