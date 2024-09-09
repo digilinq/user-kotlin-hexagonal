@@ -34,9 +34,9 @@ class WebSecurityConfig {
     fun webSecurityCustomizer(): WebSecurityCustomizer {
         return WebSecurityCustomizer { web: WebSecurity ->
             web.ignoring()
-                .antMatchers(SWAGGER_UI_V2)
-                .antMatchers(Swagger_UI_v3_OpenAPI)
-                .antMatchers(H2_CONSOLE)
+                .antMatchers(*SWAGGER_UI_V2)
+                .antMatchers(*Swagger_UI_v3_OpenAPI)
+                .antMatchers(*H2_CONSOLE)
         }
     }
 
